@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Player {
+  id                   String         @id @default(cuid())
+  accountId            String         @unique
+  personaName          String?
+  avatarUrl            String?
+  rankTier             Int?
+  initialMmr           Int
+  estimatedMmr         Int
+  personalBestMmr      Int
+  lastSyncedMatchId    String?
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  lastSyncedAt         DateTime?
+  matches              Match[]
+  rankSnapshots        RankSnapshot[]
+
+  @@index([createdAt])
+}
+
+model Match {
+  id             String   @id @default(cuid())
+  playerId       String
+  matchId        String
+  heroId         Int?
+  heroName       String?
+  result         String
+  isRanked       Boolean  @default(false)
+  mmrChange      Int?
+  kills          Int?
+  deaths         Int?
+  assists        Int?
+  duration       Int?
+  gpm            Int?
+  xpm            Int?
+  lastHits       Int?
+  denies         Int?
+  lane           String?
+  items          Json?
+  purchaseLog    Json?
+  goldTimeline   Json?
+  lhTimeline     Json?
+  xpTimeline     Json?
+  playedAt       DateTime
+  player         Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@index([playerId, playedAt])
+  @@unique([playerId, matchId])
+}
+
+model RankSnapshot {
+  id           String   @id @default(cuid())
+  playerId     String
+  rankTier     Int?
+  estimatedMmr Int
+  capturedOn   DateTime @db.Date
+  player       Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([playerId, capturedOn])
+  @@index([playerId, capturedOn])
+}
